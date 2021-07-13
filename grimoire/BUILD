@@ -21,3 +21,8 @@ cc_binary(
         "-lpthread",
     ],
 )
+
+cc_binary(
+    name = "dup-example",
+    srcs = ["dup.c"]
+)
