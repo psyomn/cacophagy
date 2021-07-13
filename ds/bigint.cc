@@ -32,10 +32,10 @@ namespace psy::ds {
       digits_.push_front((*it) - 0x30);
   }
 
-  BigInt::BigInt(std::deque<std::uint8_t>&& digits) :
+  BigInt::BigInt(std::deque<std::int8_t>&& digits) :
     digits_(std::move(digits)) {}
 
-  const std::deque<std::uint8_t>& BigInt::GetDigits() const {
+  const std::deque<std::int8_t>& BigInt::GetDigits() const {
     return digits_;
   }
 
@@ -49,10 +49,49 @@ namespace psy::ds {
       other : *this;
 
     size_t index = 0;
-    uint8_t carry = 0;
     auto small_it = smaller.GetDigits().crbegin();
     auto bigger_it = bigger.GetDigits().crbegin();
-    std::deque<std::uint8_t> ret;
+    std::deque<std::int8_t> ret;
+
+    while (bigger_it != bigger.GetDigits().rend()) {
+      std::int8_t big = 0;
+      std::int8_t small = 0;
+
+      big = *bigger_it;
+      ++bigger_it;
+
+      if (small_it != smaller.GetDigits().rend()) {
+        small = *small_it;
+        ++small_it;
+      }
+
+      ret.push_front(big + small);
+    }
+
+    // apply carry once and for all
+    std::int8_t carry = 0;
+    for (auto it = ret.rbegin(); it != ret.rend(); ++it) {
+      *it += carry;
+      carry = 0;
+
+      if (*it >= 10) {
+        carry = 1;
+        *it -= 10;
+      }
+    }
+
+    if (carry == 1) ret.push_front(carry);
+
+    return BigInt(std::move(ret));
+  }
+
+  BigInt BigInt::operator-(const BigInt& other) const {
+    std::deque<std::int8_t> ret;
+
+    auto it_other = other.GetDigits().crbegin();
+    auto it_this = this->GetDigits().crbegin();
+
+    // WIP
 
     return BigInt(std::move(ret));
   }

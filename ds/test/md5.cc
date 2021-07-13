@@ -52,9 +52,9 @@ TEST(md5, pad_n_plus_1) {
   EXPECT_EQ(padded_message[65], 0b10000000);
 }
 
-TEST(md5, simple_message) {
+TEST(md5, empty_message) {
   using md5 = psy::ds::MD5;
-  const std::vector<std::uint8_t> message = { 'h', 'e', 'l', 'l', 'o' };
+  const std::vector<std::uint8_t> message = {};
   const auto ret = md5::Digest(message);
 
   std::cout << std::hex
@@ -62,4 +62,25 @@ TEST(md5, simple_message) {
             << ret[1] << " "
             << ret[2] << " "
             << ret[3] << " " << std::endl;
+}
+
+TEST(md5, extract_chunk) {
+  using md5 = psy::ds::MD5;
+  const std::vector<std::uint8_t> data = {
+    0xaa, 0xaa, 0xaa, 0xaa,  0xbb, 0xbb, 0xbb, 0xbb,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 7,
+  };
+
+  std::array<std::uint32_t, 16> chunks = {0};
+  md5::ExtractChunk(data, 0, 64, chunks);
+
+  // for (size_t i = 0; i < 16; ++i)
+  //   std::cout << "--" << chunks[i] << std::endl;
+
 }

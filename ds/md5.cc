@@ -15,6 +15,8 @@
 */
 #include "md5.h"
 
+#include <iostream>
+
 namespace psy::ds {
   // constants taken from https://en.wikipedia.org/wiki/MD5
 
@@ -57,11 +59,17 @@ namespace psy::ds {
 
     std::uint32_t A0 = kA0, B0 = kB0, C0 = kC0, D0 = kD0;
 
+    std::uint32_t a = 0, b = 0, c = 0, d = 0;
+
+    // for each chunk of 512 bits
     for (size_t i = 0; i < padded_size; i += 64) {
-      std::uint32_t a = A0, b = B0, c = C0, d = D0;
+      a = A0; b = B0; c = C0; d = D0;
+
+      std::array<uint32_t, 16> chunk = {0};
+      ExtractChunk(padded_message, i, i+64, chunk);
 
       for (size_t j = 0; j < kShiftSize; ++j) {
-        std::uint64_t F = 0, G = 0;
+        std::uint32_t F = 0, G = 0;
 
         if (j >= 48 && j <= 63) {
           // F := C xor (B or (not D))
@@ -78,7 +86,7 @@ namespace psy::ds {
           // g := (5×i + 1) mod 16
           F = (d & b) | ((!d) & c);
           G = (5 * i + 1) % 16;
-        } else if (j > 0  && j <= 15) {
+        } else if (j <= 15) {
           // F := (B and C) or ((not B) and D)
           // g := i
           F = (b & c) | ((!b) & d);
@@ -86,7 +94,7 @@ namespace psy::ds {
         }
 
         // M[g] must be a 32-bits block
-        F = F + a + kSine[j] + padded_message[G];
+        F = F + a + kSine[j] + chunk[G];
         a = d;
         d = c;
         c = b;
@@ -130,5 +138,17 @@ namespace psy::ds {
     padded.push_back(0xff & (msg_size_64 >> 56));
 
     return padded;
+  }
+
+  void MD5::ExtractChunk(const std::vector<std::uint8_t>& message,
+                         size_t from, size_t to,
+                         std::array<std::uint32_t, 16>& chunk) {
+    for (size_t i = from; i < to; i += 4) {
+      chunk[i/4] =
+        std::uint32_t(message[i])         |
+        std::uint32_t(message[i+1]) << 8  |
+        std::uint32_t(message[i+2]) << 16 |
+        std::uint32_t(message[i+3]) << 24 ;
+    }
   }
 }
